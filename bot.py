@@ -1,3 +1,8 @@
+# УДАЛИТЕ эти строки если они есть:
+# from dotenv import load_dotenv
+# load_dotenv()
+
+# ОСТАВЬТЕ только:
 import logging
 import asyncio
 from datetime import datetime, timedelta
@@ -26,7 +31,6 @@ from database import init_db, get_or_create_user, get_user_subscription_info, Us
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 import pytz
-
 # Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
