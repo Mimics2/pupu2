@@ -1,6 +1,6 @@
 python-telegram-bot==20.7
-pytz==2023.3
-python-telegram-bot==20.7
-python-dotenv==1.0.0
-redis==5.0.1
+apscheduler==3.10.4
+python-dateutil==2.8.2
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
 pytz==2023.3
