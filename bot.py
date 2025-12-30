@@ -681,34 +681,35 @@ class TelegramBot:
                 logger.error(f"Ошибка при кике пользователя {user.telegram_id}: {e}")
     
     def setup_handlers(self, application):
-        """Настройка обработчиков"""
-        
-        # Команды
-        application.add_handler(CommandHandler("start", self.start))
-        application.add_handler(CommandHandler("admin", self.admin_panel))
-        
-        # Обработчики callback-запросов
-        application.add_handler(CallbackQueryHandler(self.schedule_post, pattern="^schedule_post$"))
-        application.add_handler(CallbackQueryHandler(self.handle_time_selection, pattern="^post_"))
-        application.add_handler(CallbackQueryHandler(self.show_tariffs, pattern="^tariffs$"))
-        application.add_handler(CallbackQueryHandler(self.process_payment, pattern="^buy_"))
-        application.add_handler(CallbackQueryHandler(self.admin_panel, pattern="^admin_panel$"))
-        application.add_handler(CallbackQueryHandler(self.export_database, pattern="^export_db$"))
-        application.add_handler(CallbackQueryHandler(self.main_menu, pattern="^main_menu$"))
-        application.add_handler(CallbackQueryHandler(self.show_profile, pattern="^profile$"))
-        application.add_handler(CallbackQueryHandler(self.confirm_and_schedule, pattern="^select_channel_"))
-        application.add_handler(CallbackQueryHandler(self.request_post_content, pattern="^custom_date$"))
-        
-        # Обработчики сообщений
-        application.add_handler(MessageHandler(
-            filters.TEXT & ~filters.COMMAND & filters.Regex(r'^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}$'),
-            self.handle_custom_date
-        ))
-        
-        application.add_handler(MessageHandler(
-            filters.TEXT | filters.PHOTO | filters.VIDEO | filters.DOCUMENT,
-            self.handle_post_content
-        ))
+    """Настройка обработчиков"""
+    
+    # Команды
+    application.add_handler(CommandHandler("start", self.start))
+    application.add_handler(CommandHandler("admin", self.admin_panel))
+    
+    # Обработчики callback-запросов
+    application.add_handler(CallbackQueryHandler(self.schedule_post, pattern="^schedule_post$"))
+    application.add_handler(CallbackQueryHandler(self.handle_time_selection, pattern="^post_"))
+    application.add_handler(CallbackQueryHandler(self.show_tariffs, pattern="^tariffs$"))
+    application.add_handler(CallbackQueryHandler(self.process_payment, pattern="^buy_"))
+    application.add_handler(CallbackQueryHandler(self.admin_panel, pattern="^admin_panel$"))
+    application.add_handler(CallbackQueryHandler(self.export_database, pattern="^export_db$"))
+    application.add_handler(CallbackQueryHandler(self.main_menu, pattern="^main_menu$"))
+    application.add_handler(CallbackQueryHandler(self.show_profile, pattern="^profile$"))
+    application.add_handler(CallbackQueryHandler(self.confirm_and_schedule, pattern="^select_channel_"))
+    application.add_handler(CallbackQueryHandler(self.request_post_content, pattern="^custom_date$"))
+    
+    # Обработчики сообщений
+    application.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.Regex(r'^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}$'),
+        self.handle_custom_date
+    ))
+    
+    # ИСПРАВЛЕННАЯ СТРОКА: замените DOCUMENT на ATTACHMENT
+    application.add_handler(MessageHandler(
+        filters.TEXT | filters.PHOTO | filters.VIDEO | filters.ATTACHMENT,
+        self.handle_post_content
+    ))
     
     def run(self):
         """Запуск бота"""
