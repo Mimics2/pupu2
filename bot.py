@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import sys
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -20,6 +21,7 @@ from telegram.ext import (
     filters
 )
 from telegram.constants import ParseMode
+from telegram.error import Conflict
 
 from config import Config
 from database import init_db, get_or_create_user, get_user_subscription_info, User, UserChannel, ScheduledPost, Payment
@@ -230,6 +232,10 @@ class TelegramBot:
         
         # Получаем информацию о каналах пользователя
         user = session.query(User).filter_by(telegram_id=user_id).first()
+        if not user:
+            await update.message.reply_text("❌ Пользователь не найден!")
+            return
+            
         channels = [c for c in user.channels if c.is_active]
         
         if not channels:
@@ -706,26 +712,63 @@ class TelegramBot:
             self.handle_post_content
         ))
     
-    def run(self):
-        """Запуск бота"""
-        application = Application.builder().token(self.config.BOT_TOKEN).build()
+    def run_with_retry(self):
+        """Запуск бота с повторными попытками при конфликте"""
+        max_retries = 3
+        retry_delay = 10  # секунд
         
-        self.setup_handlers(application)
-        
-        # Запускаем планировщик
-        scheduler.start()
-        
-        # Запускаем проверку подписок каждые 30 минут
-        scheduler.add_job(
-            self.check_subscriptions,
-            'interval',
-            minutes=30,
-            args=[application]
-        )
-        
-        # Запускаем бота
-        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Starting bot (attempt {attempt + 1}/{max_retries})...")
+                
+                application = Application.builder().token(self.config.BOT_TOKEN).build()
+                
+                self.setup_handlers(application)
+                
+                # Запускаем планировщик
+                scheduler.start()
+                
+                # Запускаем проверку подписок каждые 30 минут
+                scheduler.add_job(
+                    self.check_subscriptions,
+                    'interval',
+                    minutes=30,
+                    args=[application]
+                )
+                
+                logger.info("Bot started successfully!")
+                application.run_polling(
+                    allowed_updates=Update.ALL_TYPES,
+                    close_loop=False
+                )
+                break
+                
+            except Conflict as e:
+                logger.warning(f"Conflict detected: {e}")
+                if attempt < max_retries - 1:
+                    logger.info(f"Waiting {retry_delay} seconds before retry...")
+                    import time
+                    time.sleep(retry_delay)
+                    # Увеличиваем задержку для следующей попытки
+                    retry_delay *= 2
+                else:
+                    logger.error("Max retries reached. Exiting.")
+                    raise
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                raise
+
+def main():
+    """Главная функция"""
+    bot = TelegramBot()
+    
+    try:
+        bot.run_with_retry()
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
+    except Exception as e:
+        logger.error(f"Bot crashed: {e}")
+        sys.exit(1)
 
 if __name__ == '__main__':
-    bot = TelegramBot()
-    bot.run()
+    main()
