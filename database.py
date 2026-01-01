@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey, BigInteger
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime, timedelta
@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer, unique=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)  # ИЗМЕНИЛИ Integer на BigInteger
     username = Column(String(100))
     first_name = Column(String(100))
     last_name = Column(String(100))
@@ -91,7 +91,11 @@ def get_or_create_user(session, telegram_id, username, first_name, last_name):
             last_name=last_name
         )
         session.add(user)
-        session.commit()
+        try:
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
     return user
 
 def get_user_subscription_info(session, user_id):
