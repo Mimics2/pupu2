@@ -1,7 +1,8 @@
+
 import os
 
 class Config:
-    # Основные настройки (Railway сам установит переменные окружения)
+    # Основные настройки
     BOT_TOKEN = os.environ.get('BOT_TOKEN', '7370973281:AAGdnM2SdekWwSF5alb5vnt0UWAN5QZ1dCQ')
     ADMIN_ID = int(os.environ.get('ADMIN_ID', 6646433980))
     
