@@ -8,3 +8,5 @@ bot.db
 instance/
 *.sqlite3
 .DS_Store
+venv/
+env/
