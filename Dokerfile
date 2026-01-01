@@ -6,6 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем и устанавливаем зависимости
@@ -15,8 +16,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем исходный код
 COPY . .
 
+# Делаем скрипт исполняемым
+RUN chmod +x docker_start.sh
+
 # Создаем non-root пользователя для безопасности
 RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /app
 USER botuser
 
-CMD ["python", "bot.py"]
+# Используем скрипт для запуска
+CMD ["./docker_start.sh"]
